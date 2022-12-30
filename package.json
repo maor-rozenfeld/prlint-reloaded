@@ -6,7 +6,7 @@
   "author": "yellowblood <yellowblood@yellowblood.yellowblood>",
   "license": "MIT",
   "dependencies": {
-    "flat": "^4.1.0",
+    "flat": "^5.0.1",
     "git-rev-sync": "^1.12.0",
     "got": "^9.2.1",
     "jsonwebtoken": "^8.3.0",
