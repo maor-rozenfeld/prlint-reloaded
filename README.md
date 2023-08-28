@@ -3,4 +3,6 @@
 An alternative implementation for the now deprecated(?) [PRLint app](https://github.com/ewolfe/prlint), allowing you to validate metadata of pull requests, such as the PR title, using regex patterns.
 
 This App is compatible with PRLint, as in, it will read the `.github/prlint.json` file.
-x
+
+...
+
