@@ -11,7 +11,7 @@ An alternative implementation for [PRLint](https://github.com/ewolfe/prlint) by 
 This App is compatible with PRLint, as in, it will read the `.github/prlint.json` file.
 
 ...
-
+.
 
 ## Logo
 
