@@ -1,0 +1,23 @@
+name: PRLint Reloaded
+author: Maor Rozenfeld
+description: Validate a PR title using regex
+inputs:
+  title-regex:
+    description: The regex pattern to validate the PR title
+    required: true
+  error-message:
+    description: The error message to display if the PR title does not match the regex pattern
+    required: false
+    default: Your PR title is invalid
+branding:
+    icon: check-circle
+    color: yellow
+runs:
+  using: composite
+  steps:
+    - run: ${{ github.action_path }}/lint.sh
+      env:
+        TITLE: ${{ github.event.pull_request.title }}
+        TITLE_REGEX: ${{ inputs.title-regex }}
+        ERROR_MESSAGE: ${{ inputs.error-message }}
+      shell: bash
