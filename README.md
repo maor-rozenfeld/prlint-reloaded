@@ -4,7 +4,8 @@ A GitHub Action that validates PR titles.
 
 ## Usage
 
-Add a `.github/workflows/prlint.yml` file to your repository with the following content:
+
+Create a `.github/workflows/prlint.yml` file in your repository with the following content:
 
 ```yml
 name: PR Lint
@@ -28,6 +29,8 @@ jobs:
           title-regex: "^(?!\\S+ing\\s)(?!\\S+ed\\s)"
           error-message: Use imperative mood (i.e write "Fix", not "Fixed" or "Fixing")
 ```
+
+Edit the `title-regex` and `error-message` fields to match your requirements.
 
 ## License
 
