@@ -1,0 +1,12 @@
+name: Tests
+on:
+  push:
+
+jobs:
+    test:
+        name: Test
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Run tests
+            run: ./tests.sh || { echo "::error title=Tests failed::tests.sh returned an error." && exit 1; }

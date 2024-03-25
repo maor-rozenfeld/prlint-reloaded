@@ -2,25 +2,24 @@
 
 set -e
 
-if TITLE="Add something" \
-TITLE_REGEX="^Add" \
+if TITLE="Starts with Starts" \
+TITLE_REGEX="^Starts" \
 ERROR_MESSAGE="N/A" \
 ./lint.sh; then echo "Pass"; else echo "Failed" && exit 1; fi
 
-if ! TITLE="Add something" \
+if ! TITLE="Capitalized title" \
 TITLE_REGEX="^[a-z]" \
-ERROR_MESSAGE="Must be lower case" \
+ERROR_MESSAGE="Title must not be capitalized" \
 ./lint.sh; then echo "Pass"; else echo "Failed" && exit 1; fi
 
 if TITLE="Fix a thing" \
 TITLE_REGEX="^(?!\\S+ing\\s)(?!\\S+ed\\s)" \
-ERROR_MESSAGE="Must be lower case" \
+ERROR_MESSAGE="Must use imperative mood" \
 ./lint.sh; then echo "Pass"; else echo "Failed" && exit 1; fi
 
-if TITLE="Fix a thing" \
+if ! TITLE="Fixing a thing" \
 TITLE_REGEX="^(?!\\S+ing\\s)(?!\\S+ed\\s)" \
-ERROR_MESSAGE="Must be lower case" \
+ERROR_MESSAGE="Must use imperative mood" \
 ./lint.sh; then echo "Pass"; else echo "Failed" && exit 1; fi
-
 
 echo All tests passed
