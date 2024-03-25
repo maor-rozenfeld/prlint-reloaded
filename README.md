@@ -1,4 +1,4 @@
-# PRLint Reloaded
+# PRLint Revolutions
 
 A GitHub Action that validates PR titles.
 
