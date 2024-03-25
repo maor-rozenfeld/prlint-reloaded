@@ -8,10 +8,8 @@
 # Match regex title with the title
 if grep -qP -- "$TITLE_REGEX" <<< "$TITLE"; then
   echo "Title matches regex: $TITLE_REGEX"
-  echo "verdict=Pass" >> $GITHUB_OUTPUT
 else
-  echo "Error: Title does not match regex: $TITLE_REGEX" >&2
-  echo "$ERROR_MESSAGE" >&2
-  echo "verdict=$(echo $ERROR_MESSAGE)" >> $GITHUB_OUTPUT
+  echo "Title does not match regex: $TITLE_REGEX" >&2
+  echo "::error title=PR Title is invalid::$ERROR_MESSAGE"
   exit 1
 fi
