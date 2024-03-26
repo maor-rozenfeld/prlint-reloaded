@@ -11,7 +11,7 @@ Create a `.github/workflows/prlint.yml` file in your repository with the followi
 name: PR Lint
 on:
   pull_request:
-    types: [opened, edited, reopened, synchronize]
+    types: ['opened', 'edited', 'reopened', 'synchronize']
 jobs:
   prlint-reloaded:
     runs-on: ubuntu-latest
