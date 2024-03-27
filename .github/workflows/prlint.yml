@@ -1,20 +1,26 @@
 name: PR Lint
+run-name: PR Lint - ${{ jobs.prlint-reloaded.outputs.verdict || 'Validating...' }}
 on:
   pull_request:
     types: ['opened', 'edited', 'reopened', 'synchronize']
 jobs:
   prlint-reloaded:
     runs-on: ubuntu-latest
+    outputs:
+      verdict: ${{ steps.3.outputs.verdict || steps.2.outputs.verdict || steps.1.outputs.verdict || 'Unknown' }}
     steps:
       - uses: maor-rozenfeld/prlint-reloaded@v1
+        id: '1'
         with:
           title-regex: ^[A-Z][a-z]+?\s
           error-message: Your title must start with a capital letter, and a real word, e.g. 'Add GO support'
       - uses: maor-rozenfeld/prlint-reloaded@v1
+        id: '2'
         with:
           title-regex: ^\S+\s+\S+\s+\S+
           error-message: Your title must have at least three words
       - uses: maor-rozenfeld/prlint-reloaded@v1
+        id: '3'
         with:
           title-regex: ^(?!\S+ing\s)(?!\S+ed\s)
           error-message: Use imperative mood (i.e write "Fix", not "Fixed" or "Fixing")
