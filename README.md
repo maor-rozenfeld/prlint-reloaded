@@ -32,6 +32,8 @@ jobs:
 
 Edit the `title-regex` and `error-message` fields to match your requirements.
 
-## License
+## Lambda-based App
 
-[MIT](/LICENSE)
+The [old marketplace app](https://github.com/marketplace/prlintreloaded) is still working, and it's faster than the GitHub Action, but it won't be supported forever.
+
+You can see the lambda documentation and implementation [in the `lambda` branch](https://github.com/maor-rozenfeld/prlint-reloaded/tree/lambda).
