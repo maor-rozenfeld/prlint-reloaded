@@ -1,15 +1,21 @@
 const flatten = require('flat');
-const git = require('git-rev-sync');
 const got = require('got');
-
-const newJsonWebToken = require('./newJsonWebToken.js');
-
-const accessTokens = {};
 
 const {
   GITHUB_URL = 'https://github.com',
   GITHUB_API_URL = 'https://api.github.com',
+  LOGZIO_TOKEN = ''
 } = process.env;
+
+var logger = require('logzio-nodejs').createLogger({
+  token: LOGZIO_TOKEN,
+  type: 'pr'
+});
+
+
+const newJsonWebToken = require('./newJsonWebToken.js');
+
+const accessTokens = {};
 
 async function updateShaStatus(body) {
   const accessToken = accessTokens[`${body.installation.id}`].token;
@@ -80,7 +86,7 @@ async function updateShaStatus(body) {
       bodyPayload = {
         state: 'success',
         description: 'Your validation rules passed',
-        context: 'PRLint',
+        context: 'PRLintReloaded',
       };
     } else {
       let description = failureMessages[0];
@@ -94,15 +100,15 @@ async function updateShaStatus(body) {
           state: 'failure',
           description: description.slice(0, 140), // 140 characters is a GitHub limit
           target_url: URL,
-          context: 'PRLint',
+          context: 'PRLintReloaded',
         };
       } else {
         bodyPayload = {
           state: 'failure',
           description:
-            'Something went wrong with PRLint - You can help by opening an issue (click details)',
-          target_url: 'https://github.com/ewolfe/prlint/issues/new',
-          context: 'PRLint',
+            'Something went wrong with PRLintReloaded - You can help by opening an issue (click details)',
+          target_url: 'https://github.com/maor-rozenfeld/prlint-reloaded/issues/new',
+          context: 'PRLintReloaded',
         };
       }
     }
@@ -143,9 +149,9 @@ async function updateShaStatus(body) {
         },
         body: {
           state: 'success',
-          description: 'No rules are setup for PRLint',
-          context: 'PRLint',
-          target_url: `${GITHUB_URL}/apps/prlint`,
+          description: 'No rules are setup for PRLintReloaded',
+          context: 'PRLintReloaded',
+          target_url: `${GITHUB_URL}/apps/PRLint-Reloaded`,
         },
         json: true,
       });
@@ -159,9 +165,9 @@ async function updateShaStatus(body) {
         body: {
           state: 'error',
           description:
-            'An error occurred with PRLint. Click details to open an issue',
-          context: 'PRLint',
-          target_url: `https://github.com/ewolfe/prlint/issues/new?title=Exception Report&body=${encodeURIComponent(
+            'An error occurred with PRLintReloaded. Click details to open an issue',
+          context: 'PRLintReloaded',
+          target_url: `https://github.com/maor-rozenfeld/prlint-reloaded/issues/new?title=Exception Report&body=${encodeURIComponent(
             exception.toString(),
           )}`,
         },
@@ -186,29 +192,54 @@ setInterval(() => {
 // that accepts standard http.IncomingMessage and http.ServerResponse objects
 // https://github.com/zeit/micro#usage
 exports.handler = async (event) => {
-  console.log("request: " + JSON.stringify(event));
-  if (event.path === '/favicon.ico') {
+  if (event.headers['x-prlint-debug'] === 'true') {
+    logger.log("request: " + JSON.stringify(event));
+  }
+
+  const http = event.requestContext.http;
+
+  if (http.path === '/favicon.ico') {
+    logger.sendAndClose()
     return { statusCode: 200 , headers: {'Content-Type': 'image/x-icon'}};
   }
 
   // Used by https://stats.uptimerobot.com/ZzYnEf2BW
-  if (event.path === '/status' && event.httpMethod === 'GET') {
-    return { statusCode: 200 };
+  if (http.path === '/status' && http.method === 'GET') {
+    logger.sendAndClose()
+    return { statusCode: 200, body: { 'message': 'still alive' } };
   }
 
-  const body = event.body;
+  const body = JSON.parse(event.body);
+
+  // logger.log('Got body', event.body);
+
   // Used by GitHub
-  if (event.path === '/webhook' && event.httpMethod === 'POST') {
+  if (http.path === '/webhook' && http.method === 'POST') {
     if (body && !body.pull_request) {
       // We just return the data that was sent to the webhook
       // since there's not really anything for us to do in this situation
+      logger.log('Not a pull request')
+      logger.sendAndClose()
       return { statusCode: 200, body };
     }
     
     if (body && body.action && body.action === 'closed') {
+      logger.log('Pull request is closed')
+      logger.sendAndClose()
       return { statusCode: 200, body };
     }
-    
+
+    logger.log({ message: `Handling PR ${body.pull_request.number} in ${body.repository.full_name}`,
+      event: {
+        ...body.installation,
+        prNumber: body.pull_request.number,
+        prTitle: body.pull_request.title,
+        prStatus: body.pull_request.state,
+        repo: body.repository.full_name,
+        private: body.repository.private
+      }
+    });
+
     if (
       body
       && body.pull_request
@@ -217,8 +248,11 @@ exports.handler = async (event) => {
       && accessTokens[`${body.installation.id}`]
       && new Date(accessTokens[`${body.installation.id}`].expires_at) > new Date() // make sure token expires in the future
     ) {
+      logger.log('Updating PR status')
       // This is our main "happy path"
-      return await updateShaStatus(body);
+      let lambdaResponse = await updateShaStatus(body);
+      logger.sendAndClose()
+      return lambdaResponse;
     }
     
     if (
@@ -231,20 +265,24 @@ exports.handler = async (event) => {
       // But we need to fetch an access token first
       // so we can read ./.github/prlint.json from their repo
       try {
-        const response = await got.post(
-          `${GITHUB_API_URL}/installations/${
-            body.installation.id
-          }/access_tokens`,
-          {
-            headers: {
-              Accept: 'application/vnd.github.machine-man-preview+json',
-              Authorization: `Bearer ${JWT}`,
-            },
+        logger.log({ message: 'Fetching access token', event: { JWT } })
+        const response = await got.post(`${GITHUB_API_URL}/app/installations/${body.installation.id}/access_tokens`, {
+          json: {},
+          headers: {
+            Accept: 'application/vnd.github.machine-man-preview+json',
+            Authorization: `Bearer ${JWT}`,
           },
-        );
-        accessTokens[`${body.installation.id}`] = JSON.parse(response.body);
-        return await updateShaStatus(body);
+          responseType: 'json',
+        });
+        accessTokens[`${body.installation.id}`] = response.body;
+
+        logger.log('Updating PR status with new token')
+        let lambdaResponse = await updateShaStatus(body);
+        logger.sendAndClose()
+        return lambdaResponse;
       } catch (exception) {
+        logger.log({message: 'Failed to fetch access token', error: exception});
+        logger.sendAndClose()
         return {statusCode: 500, body: {
           token: accessTokens[`${body.installation.id}`],
           exception
@@ -253,12 +291,16 @@ exports.handler = async (event) => {
     } 
     // Doubtful GitHub will ever end up at this block
     // but it was useful while I was developing
+    logger.log('Invalid payload')
+    logger.sendAndClose()
     return { statusCode: 400, body: { error: 'invalid request payload'}};
   }
   
   else {
     // Redirect since we don't need anyone visiting our service
     // if they happen to stumble upon our URL
-    return { statusCode: 301, headers: { Location: 'https://github.com/yellowblood/prlint-reloaded' } };
+    logger.log('Redirecting to GitHub repo')
+    logger.sendAndClose()
+    return { statusCode: 301, headers: { Location: 'https://github.com/maor-rozenfeld/prlint-reloaded' } };
   }
 };
