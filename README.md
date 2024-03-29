@@ -4,7 +4,7 @@
 
 # PRLint Reloaded
 
-> :warning: **DEPRECATED**: Use [pr-lint-action](https://github.com/seferov/pr-lint-action) instead
+> :warning: **DEPRECATED**: Use the [GitHub Action](https://github.com/maor-rozenfeld/prlint-reloaded/tree/master) instead
 
 
 An alternative implementation for [PRLint](https://github.com/ewolfe/prlint) by [ewolfe](https://github.com/ewolfe), allowing you to validate metadata of pull requests, such as the PR title, using regex patterns.
