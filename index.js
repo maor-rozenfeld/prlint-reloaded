@@ -236,6 +236,8 @@ exports.handler = async (event) => {
         prTitle: body.pull_request.title,
         prStatus: body.pull_request.state,
         repo: body.repository.full_name,
+        repoOwner: body.repository.owner.login,
+        repoName: body.repository.name,
         private: body.repository.private
       }
     });
@@ -265,7 +267,7 @@ exports.handler = async (event) => {
       // But we need to fetch an access token first
       // so we can read ./.github/prlint.json from their repo
       try {
-        logger.log({ message: 'Fetching access token', event: { JWT } })
+        logger.log({ message: 'Fetching access token', event: { jwt: JWT.substring(0,20) + '...' } })
         const response = await got.post(`${GITHUB_API_URL}/app/installations/${body.installation.id}/access_tokens`, {
           json: {},
           headers: {
