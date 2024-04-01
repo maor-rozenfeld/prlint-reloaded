@@ -1,4 +1,4 @@
-# PRLint Reloaded
+# PRLint Revolutions
 
 PRLint Reloaded lets you validate PR metadata using regular expressions, and then fail or pass the PR based on the validation results.
 
