@@ -1,9 +1,19 @@
 # PRLint Reloaded
 
-A GitHub Action that validates PR titles.
+PRLint Reloaded lets you validate PR metadata using regular expressions, and then fail or pass the PR based on the validation results.
 
-## Usage
+There are two installation types, GitHub App and GitHub Action. The GitHub App is faster and provides more capabilities, while the GitHub Action is more isolated and independent.
 
+## GitHub App
+
+The GitHub App can validate various PR metadata, such as title, description, and labels. It is a copy of [ewolfe/prlint](https://github.com/ewolfe/prlint) wrapped in a serverless deployment.
+
+Simple add a `.github/prlint.json` file to your repository and [install the app from the marketplace](https://github.com/apps/prlint-reloaded).
+
+
+## GitHub Action
+
+The GitHub Action only validates PR titles.
 
 Create a `.github/workflows/prlint.yml` file in your repository with the following content:
 
@@ -32,8 +42,7 @@ jobs:
 
 Edit the `title-regex` and `error-message` fields to match your requirements.
 
-## Lambda-based App
 
-The [old marketplace app](https://github.com/marketplace/prlintreloaded) is still working, and it's faster than the GitHub Action, but it won't be supported forever.
+## Logo
 
-You can see the lambda documentation and implementation [in the `lambda` branch](https://github.com/maor-rozenfeld/prlint-reloaded/tree/lambda).
+Logo made by [Eucalyp](https://creativemarket.com/eucalyp) from [Flaticon](https://www.flaticon.com/).
