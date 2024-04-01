@@ -42,7 +42,3 @@ jobs:
 
 Edit the `title-regex` and `error-message` fields to match your requirements.
 
-
-## Logo
-
-Logo made by [Eucalyp](https://creativemarket.com/eucalyp) from [Flaticon](https://www.flaticon.com/).
