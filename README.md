@@ -1,4 +1,7 @@
-# PRLint Reloaded
+[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m785772948-409b63c8617fcbbc6e9a30a6?style=flat-square)](https://stats.uptimerobot.com/N54K1TN9Kq)
+
+
+# [![Logo](https://avatars3.githubusercontent.com/in/77103?s=41&u=b36fe8dbd2b56b8f634d32e33b2641afef168972&v=4)](https://github.com/apps/prlint-reloaded) PRLint Reloaded
 
 PRLint Reloaded lets you validate PR metadata using regular expressions, and then fail or pass the PR based on the validation results.
 
@@ -10,6 +13,59 @@ The GitHub App can validate various PR metadata, such as title, description, and
 
 Simple add a `.github/prlint.json` file to your repository and [install the app from the marketplace](https://github.com/apps/prlint-reloaded).
 
+Example rules:
+
+```json
+{
+  "title": [
+    {
+      "pattern": "^(build|ci|docs|feat|fix|perf|refactor|style|test):\\s",
+      "message": "Your title needs to be prefixed with a topic"
+    }
+  ],
+  "body": [
+    {
+      "pattern": "JIRA-\\d{1,4}",
+      "flags": ["i"],
+      "message": "You need a JIRA ticket in your description"
+    },
+    {
+      "pattern": ".{1,}",
+      "message": "You need literally anything in your description"
+    }
+  ],
+  "head.ref": [
+    {
+      "pattern": "^(build|ci|docs|feat|fix|perf|refactor|style|test)/",
+      "message": "Your branch name is invalid"
+    }
+  ],
+  "assignee.login": [
+    {
+      "pattern": ".+",
+      "message": "You need to assign someone"
+    }
+  ],
+  "requested_teams.0.id": [
+    {
+      "pattern": "2691982",
+      "message": "The product team needs to be added as a reviewer"
+    }
+  ],
+  "additions": [
+    {
+      "pattern": "0|^[1-9]$|^[1-9]\\d$",
+      "message": "Your PR is too big (over 99 additions)"
+    }
+  ],
+  "labels.0.name": [
+    {
+      "pattern": "bug|enhancement|question",
+      "message": "Please add a label"
+    }
+  ]
+}
+```
 
 ## GitHub Action
 
@@ -41,4 +97,3 @@ jobs:
 ```
 
 Edit the `title-regex` and `error-message` fields to match your requirements.
-
