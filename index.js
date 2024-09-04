@@ -192,7 +192,7 @@ setInterval(() => {
 // https://github.com/zeit/micro#usage
 exports.handler = async (event) => {
   if (event.headers['x-prlint-debug'] === 'true') {
-    logger.log("request: " + JSON.stringify(event));
+    info("request: " + JSON.stringify(event));
   }
 
   const http = event.requestContext.http;
@@ -210,26 +210,25 @@ exports.handler = async (event) => {
 
   const body = JSON.parse(event.body);
 
-  // logger.log('Got body', event.body);
+  const metadata = { repoOwner: body?.repository?.owner?.login, repoName: body?.repository?.name }
 
   // Used by GitHub
   if (http.path === '/webhook' && http.method === 'POST') {
     if (body && !body.pull_request) {
       // We just return the data that was sent to the webhook
       // since there's not really anything for us to do in this situation
-      logger.log('Not a pull request')
+      info('Not a pull request', metadata)
       logger.sendAndClose()
       return { statusCode: 200, body };
     }
     
     if (body && body.action && body.action === 'closed') {
-      logger.log('Pull request is closed')
+      info('Pull request is closed', metadata)
       logger.sendAndClose()
       return { statusCode: 200, body };
     }
 
-    logger.log({ message: `Handling PR ${body.pull_request.number} in ${body.repository.full_name}`,
-      event: {
+    info(`Handling PR ${body.pull_request.number} in ${body.repository.full_name}`, {
         ...body.installation,
         prNumber: body.pull_request.number,
         prTitle: body.pull_request.title,
@@ -238,8 +237,7 @@ exports.handler = async (event) => {
         repoOwner: body.repository.owner.login,
         repoName: body.repository.name,
         private: body.repository.private
-      }
-    });
+      });
 
     if (
       body
@@ -249,7 +247,7 @@ exports.handler = async (event) => {
       && accessTokens[`${body.installation.id}`]
       && new Date(accessTokens[`${body.installation.id}`].expires_at) > new Date() // make sure token expires in the future
     ) {
-      logger.log('Updating PR status')
+      debug('Updating PR status', metadata)
       // This is our main "happy path"
       let lambdaResponse = await updateShaStatus(body);
       logger.sendAndClose()
@@ -266,7 +264,7 @@ exports.handler = async (event) => {
       // But we need to fetch an access token first
       // so we can read ./.github/prlint.json from their repo
       try {
-        logger.log({ message: 'Fetching access token', event: { jwt: JWT.substring(0,20) + '...' } })
+        debug('Fetching access token', { jwt: JWT.substring(0,20) + '...', ...metadata })
         const response = await got.post(`${GITHUB_API_URL}/app/installations/${body.installation.id}/access_tokens`, {
           json: {},
           headers: {
@@ -277,12 +275,12 @@ exports.handler = async (event) => {
         });
         accessTokens[`${body.installation.id}`] = response.body;
 
-        logger.log('Updating PR status with new token')
+        info('Updating PR status with new token', metadata)
         let lambdaResponse = await updateShaStatus(body);
         logger.sendAndClose()
         return lambdaResponse;
       } catch (exception) {
-        logger.log({message: 'Failed to fetch access token', error: exception});
+        error('Failed to fetch access token', exception, metadata);
         logger.sendAndClose()
         return {statusCode: 500, body: {
           token: accessTokens[`${body.installation.id}`],
@@ -292,7 +290,7 @@ exports.handler = async (event) => {
     } 
     // Doubtful GitHub will ever end up at this block
     // but it was useful while I was developing
-    logger.log('Invalid payload')
+    error('Invalid payload', null, metadata)
     logger.sendAndClose()
     return { statusCode: 400, body: { error: 'invalid request payload'}};
   }
@@ -300,8 +298,20 @@ exports.handler = async (event) => {
   else {
     // Redirect since we don't need anyone visiting our service
     // if they happen to stumble upon our URL
-    logger.log('Redirecting to GitHub repo')
+    info('Redirecting to GitHub repo')
     logger.sendAndClose()
     return { statusCode: 301, headers: { Location: 'https://github.com/maor-rozenfeld/prlint-reloaded' } };
   }
 };
+
+function info(message, data) {
+  logger.log({ message, event: data, level: 'info' });
+}
+
+function error(message, error, data) {
+  logger.log({ message, event: data, error, level: 'error' });
+}
+
+function debug(message, data) {
+  logger.log({ message, event: data , level: 'debug'});
+}
