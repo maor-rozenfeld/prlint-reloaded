@@ -12,7 +12,6 @@ var logger = require('logzio-nodejs').createLogger({
   type: 'pr'
 });
 
-
 const newJsonWebToken = require('./newJsonWebToken.js');
 
 const accessTokens = {};
