@@ -9,7 +9,7 @@
 			"message": "Your title must have at least three words"
 		},
 		{
-			"pattern": "^(?!\\S+ing\\s)(?!\\S+ed\\s)",
+			"pattern": "^(?!\\S+ing\\s|Bring)(?!\\S+ed\\s|Embed)",
 			"message": "Use imperative mood (i.e write \"Fix\", not \"Fixed\" or \"Fixing\")"
 		}
 	]
