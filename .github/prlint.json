@@ -10,7 +10,7 @@
 		},
 		{
 			"pattern": "^(?!\\S+ing\\s|Bring)(?!\\S+ed\\s|Embed)",
-			"message": "Use imperative mood (i.e write \"Fix\", not \"Fixed\" or \"Fixing\")"
+			"message": "Use imperative mood (i.e \"Fix\", not \"Fixed\" or \"Fixing\")"
 		}
 	]
 }
